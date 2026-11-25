@@ -9,7 +9,7 @@ function asNumber(v) {
   return String(v ?? '').trim() && Number.isFinite(n) ? n : null;
 }
 
-const HEADER_STYLE = { fontWeight: 'bold', backgroundColor: '#E3EEE9', color: '#143D30', borderColor: '#B8CFC5', borderStyle: 'thin' };
+const HEADER_STYLE = { fontWeight: 'bold', backgroundColor: '#E6ECF7', color: '#0F2557', borderColor: '#B9C6E3', borderStyle: 'thin' };
 
 /** Saf fonksiyon: kitaplardan tablo verisi ve sütun genişlikleri üretir (test edilebilir). */
 export function buildSheet(books, now = new Date()) {
