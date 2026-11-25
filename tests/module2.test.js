@@ -39,7 +39,7 @@ describe('kaynakları birleştirme', () => {
     expect([ol.author, ol.others]).toEqual(['A', 'B, C']);
   });
   it('Google biçimini okur', () => {
-    expect(fromGoogle(GOOGLE, '9789754700114')).toEqual({ title: 'Tutunamayanlar', subtitle: '', author: 'Oğuz Atay', others: '', publisher: 'İletişim Yayınları', year: '2021', pages: '724', genre: '', language: '' });
+    expect(fromGoogle(GOOGLE, '9789754700114')).toMatchObject({ title: 'Tutunamayanlar', subtitle: '', author: 'Oğuz Atay', others: '', publisher: 'İletişim Yayınları', year: '2021', pages: '724', genre: '', language: '' });
   });
   it('Google başka bir kitabı döndürürse almaz', () => {
     const other = { items: [GOOGLE.items[0], { volumeInfo: { title: 'X', industryIdentifiers: [{ identifier: '111' }] } }] };
@@ -123,14 +123,14 @@ describe('telefondan arama', () => {
 describe('alt başlık, tür, dil', () => {
   // KC'nin örnek kitabı: Google alt başlığı vermiyor, Open Library veriyor (gerçek yanıtlardan kısaltıldı).
   const isbn = '9786058283503';
-  const g = { items: [{ volumeInfo: { title: 'Bir dünya kurmak', authors: ['Rıdvan Akar'], publisher: 'Özyeğin Üniversitesi', publishedDate: '2017', pageCount: 537, industryIdentifiers: [{ identifier: isbn }] } }] };
+  const g = { items: [{ volumeInfo: { title: 'Bir dünya kurmak', categories: ['Business & Economics'], authors: ['Rıdvan Akar'], publisher: 'Özyeğin Üniversitesi', publishedDate: '2017', pageCount: 537, industryIdentifiers: [{ identifier: isbn }] } }] };
   const ol = { [`ISBN:${isbn}`]: { title: 'Bir dünya kurmak', subtitle: "Hüsnü Özyeğin'in yaşam öyküsü", authors: [{ name: 'Rıdvan Akar' }], publishers: [{ name: 'Özyeğin Üniversitesi' }], publish_date: '2017', number_of_pages: 537, subjects: [{ name: 'Businessmen' }, { name: 'Biography' }, { name: 'Economic history' }] } };
 
   it('Google eksikse alt başlık ve tür Open Library\'den, dil ISBN grubundan', () => {
     const m = mergeSources([{ name: 'Google Books', data: fromGoogle(g, isbn) }, { name: 'Open Library', data: fromOpenLibrary(ol, isbn) }], isbn);
     expect(m.fields.title).toBe('Bir dünya kurmak');
     expect(m.fields.subtitle).toBe("Hüsnü Özyeğin'in yaşam öyküsü");
-    expect(m.fields.genre).toBe('Biyografi'); // "Businessmen" tanınmaz, "Biography" tanınır
+    expect(m.fields.genre).toBe('Biyografi'); // Google: Business & Economics, OL: Biography -> en özeli
     expect(m.fields.language).toBe('Türkçe');
   });
   it('adın içindeki ":" alt başlığa bölünür; ayrı alt başlık varsa dokunulmaz', () => {

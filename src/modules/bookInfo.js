@@ -95,6 +95,7 @@ export function fromGoogle(json, isbn) {
     publisher: clean(v.publisher),
     year: yearOf(v.publishedDate),
     pages: pagesOf(v.pageCount),
+    genreLabels: [...(v.categories ?? []), v.mainCategory].filter(Boolean),
     genre: genreOf([...(v.categories ?? []), v.mainCategory].filter(Boolean)),
     language: languageOf(v.language),
   };
@@ -110,6 +111,7 @@ export function fromOpenLibrary(json, isbn) {
     publisher: clean((d.publishers ?? []).map((p) => p.name).join(', ')),
     year: yearOf(d.publish_date),
     pages: pagesOf(d.number_of_pages),
+    genreLabels: (d.subjects ?? []).map((s) => s.name),
     genre: genreOf((d.subjects ?? []).map((s) => s.name)),
     language: '',
   };
@@ -136,6 +138,10 @@ export function mergeSources(sources, isbn) {
     }
     if (used) result.sources.push(name);
   }
+  // Tür: bütün kaynakların etiketleri birlikte değerlendirilir, en özel tür seçilir
+  // (Google "Business & Economics", Open Library "Biography" diyorsa -> Biyografi).
+  const allLabels = sources.flatMap(({ data }) => data?.genreLabels ?? []);
+  if (allLabels.length) result.fields.genre = genreOf(allLabels) || result.fields.genre;
   result.found = Boolean(result.fields.title);
   for (const f of FIELDS) result.fields[f] ??= '';
   if (result.found && !result.fields.language && turkishIsbn(isbn)) result.fields.language = 'Türkçe';
