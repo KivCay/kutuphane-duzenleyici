@@ -2,7 +2,7 @@
 import { state, updateSettings, markLabelsPrinted } from '../state.js';
 import { header, esc, icon, toast } from '../ui.js';
 import { SHEETS, perPage, pageCount, layoutLabels } from '../modules/labelLayout.js';
-import { formatNumber } from '../modules/books.js';
+import { formatNumber, isActive } from '../modules/books.js';
 
 const KIND_KEY = { kapak: 'cover', sirt: 'spine' };
 
@@ -11,13 +11,14 @@ const ui = { kind: 'kapak', scope: 'yeni', startAt: 1, outlines: false };
 
 function selectedBooks() {
   const key = KIND_KEY[ui.kind];
-  const sorted = [...state.books].sort((a, b) => a.number - b.number);
+  const sorted = state.books.filter(isActive).sort((a, b) => a.number - b.number); // çıkarılanlara etiket basılmaz
   return ui.scope === 'yeni' ? sorted.filter((b) => !b.labelPrinted?.[key]) : sorted;
 }
 
 function counts() {
   const key = KIND_KEY[ui.kind];
-  return { yeni: state.books.filter((b) => !b.labelPrinted?.[key]).length, tumu: state.books.length };
+  const active = state.books.filter(isActive);
+  return { yeni: active.filter((b) => !b.labelPrinted?.[key]).length, tumu: active.length };
 }
 
 function previewHtml() {
@@ -37,7 +38,7 @@ function previewHtml() {
 }
 
 export function render() {
-  if (!state.books.length) {
+  if (!state.books.some(isActive)) {
     return `<section class="screen">${header('Etiketler', '#/')}
       <div class="pad"><div class="empty"><p class="empty-title">Henüz kitap yok</p><p>Önce birkaç kitap okut; etiketleri sonra buradan basarsın.</p></div></div></section>`;
   }

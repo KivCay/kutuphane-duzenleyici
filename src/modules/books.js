@@ -7,10 +7,72 @@ export function formatNumber(n) {
   return String(n).padStart(NUMBER_WIDTH, '0');
 }
 
-/** Sıradaki numara: şimdiye kadarki en büyük numaranın bir fazlası (silinen numaralar tekrar kullanılmaz). */
-export function nextNumber(books) {
+/**
+ * Sıradaki numara. Bir kez verilen numara bir daha verilmez: silinen kitabın numarası boş kalır.
+ * lastIssued = şimdiye kadar verilmiş en büyük numara (telefonda ayrıca saklanır; yalnızca
+ * "Baştan başla" sıfırlar).
+ */
+export function nextNumber(books, lastIssued = 0) {
   const max = (books ?? []).reduce((m, b) => Math.max(m, Number(b.number) || 0), 0);
-  return max + 1;
+  return Math.max(max, Number(lastIssued) || 0) + 1;
+}
+
+export const REMOVE_REASONS = ['Satıldı', 'Kayboldu', 'Hediye edildi', 'Bağışlandı', 'Diğer'];
+
+/** Kütüphanede duran (çıkarılmamış) kitap mı? */
+export function isActive(book) {
+  return book?.status !== 'removed';
+}
+
+/** İki tarih arasındaki tam gün sayısı. */
+export function daysSince(iso, now = new Date()) {
+  const t = new Date(iso).getTime();
+  return Number.isNaN(t) ? 0 : Math.max(0, Math.floor((now.getTime() - t) / 86_400_000));
+}
+
+/** Kalıcı silme (deneme kayıtları için). Numara boş kalır. Geri almak için silinen kitap döner. */
+export function deleteBook(books, number) {
+  const removed = (books ?? []).find((b) => b.number === number) ?? null;
+  return { books: (books ?? []).filter((b) => b.number !== number), removed };
+}
+
+/** Silinen kitabı eski yerine (numara sırasına) geri koyar. */
+export function undeleteBook(books, book) {
+  if (!book || (books ?? []).some((b) => b.number === book.number)) return books;
+  return [...books, book].sort((a, b) => a.number - b.number);
+}
+
+/** Kütüphaneden çıkarma (satıldı, kayboldu…): kayıt ve numara kalır, listeden ayrılır. */
+export function removeFromLibrary(books, number, { reason, note = '' }, now = new Date()) {
+  return (books ?? []).map((b) => {
+    if (b.number !== number) return b;
+    const out = { ...b, status: 'removed', removed: { reason: cleanText(reason) || 'Diğer', note: cleanText(note), date: now.toISOString() } };
+    if (b.loan) { // ödünçteyken çıkarıldıysa ödünç kapanır, geçmişe yazılır
+      out.loanHistory = [...(b.loanHistory ?? []), { ...b.loan, returnedAt: now.toISOString(), closedBy: 'cikarildi' }];
+      out.loan = null;
+    }
+    return out;
+  });
+}
+
+/** Çıkarılan kitabı kütüphaneye geri koyar. */
+export function restoreToLibrary(books, number) {
+  return (books ?? []).map((b) => (b.number === number ? { ...b, status: 'active', removed: null } : b));
+}
+
+/** Ödünç ver: kime (zorunlu), not (isteğe bağlı), tarih. */
+export function lendBook(books, number, { to, note = '' }, now = new Date()) {
+  const who = cleanText(to);
+  if (!who) throw new Error('kime-bos');
+  return (books ?? []).map((b) => (b.number === number ? { ...b, loan: { to: who, note: cleanText(note), date: now.toISOString() } } : b));
+}
+
+/** Ödünçten geri geldi: ödünç kaydı geçmişe yazılır. */
+export function returnBook(books, number, now = new Date()) {
+  return (books ?? []).map((b) => {
+    if (b.number !== number || !b.loan) return b;
+    return { ...b, loan: null, loanHistory: [...(b.loanHistory ?? []), { ...b.loan, returnedAt: now.toISOString() }] };
+  });
 }
 
 /** ISBN'den rakam ve X dışındaki her şeyi atar. */
@@ -44,8 +106,8 @@ function cleanText(v) {
 }
 
 /** Yeni kitap kaydı oluşturur ve listeye ekler. Yeni listeyi ve eklenen kitabı döner. */
-export function addBook(books, fields, location, now = new Date()) {
-  const number = nextNumber(books);
+export function addBook(books, fields, location, now = new Date(), lastIssued = 0) {
+  const number = nextNumber(books, lastIssued);
   const book = {
     number,
     isbn: normalizeIsbn(fields.isbn),
@@ -61,6 +123,8 @@ export function addBook(books, fields, location, now = new Date()) {
     location: cleanLines(location),
     addedAt: now.toISOString(),
     labelPrinted: { cover: false, spine: false },
+    status: 'active',
+    loan: null,
   };
   return { books: [...(books ?? []), book], book };
 }

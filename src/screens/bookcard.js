@@ -1,7 +1,8 @@
 // 4 · Kitap kartı: yeni kitabı kaydetme (#/yeni) ve kayıtlı kitabı düzenleme (#/kitap/N).
-import { state, saveNewBook, editBook } from '../state.js';
+import { state, saveNewBook, editBook, deleteForever, undoDelete, removeBook, restoreBook, lend, giveBack } from '../state.js';
 import { esc, header, icon, toast } from '../ui.js';
-import { formatNumber, nextNumber, getBook, findByIsbn, normalizeIsbn, isValidIsbn } from '../modules/books.js';
+import { formatNumber, nextNumber, getBook, findByIsbn, normalizeIsbn, isValidIsbn, isActive, daysSince, REMOVE_REASONS } from '../modules/books.js';
+import { confirmDialog } from '../components/dialog.js';
 import { formatLocation, cleanLines } from '../modules/location.js';
 import { createLocationEditor } from '../components/locationEditor.js';
 import { lookupIsbn } from '../modules/lookup.js';
@@ -50,10 +51,12 @@ export function render({ params, query }) {
   }
 
   const isbn = editing ? book.isbn : normalizeIsbn(query.get('isbn'));
-  const number = editing ? book.number : nextNumber(state.books);
+  const number = editing ? book.number : nextNumber(state.books, state.lastNumber);
   const values = editing ? book : { isbn };
   const location = editing ? book.location : state.location;
-  const dupes = editing ? [] : findByIsbn(state.books, isbn);
+  const sameIsbn = editing ? [] : findByIsbn(state.books, isbn);
+  const dupes = sameIsbn.filter(isActive);
+  const removedDupes = sameIsbn.filter((b) => !isActive(b));
 
   return `
   <section class="screen">
@@ -80,6 +83,7 @@ export function render({ params, query }) {
         </div>
         <div id="loc-editor" hidden></div>
       </div>
+      ${editing ? '<div id="book-status"></div>' : ''}
     </form>
     <footer class="actions">
       <button type="submit" form="book-form" class="btn btn-primary">${editing ? 'Kaydet' : 'Kaydet ve numarala'}</button>
@@ -98,6 +102,7 @@ export function mount(root, { params, query, go }) {
   let saving = false;
 
   if (!editing && root.querySelector('#lookup')) fillFromInternet(root, normalizeIsbn(query.get('isbn')));
+  if (editing) mountStatus(root, book.number, go);
 
   const locBox = root.querySelector('#loc-editor');
   const locValue = root.querySelector('#loc-value');
@@ -196,4 +201,110 @@ async function fillFromInternet(root, isbn) {
     cevrimdisi: 'İnternet bağlantısı yok. Bilgileri elle yaz; kitap yine kaydedilir.',
     'zaman-asimi': 'Arama çok uzun sürdü. Bilgileri elle yaz ya da geri dönüp tekrar okut.',
   }[result.status] ?? 'Bilgiler şu an getirilemedi. Elle yazabilirsin.';
+}
+
+// ---- Durum: ödünç, kütüphaneden çıkarma, silme (yalnızca kayıtlı kitapta) ----
+
+function dateTr(iso) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function statusHtml(b) {
+  if (!isActive(b)) {
+    return `<div class="status-card removed">
+      <p class="status-title">Kütüphaneden çıkarıldı · ${esc(b.removed?.reason ?? '')}</p>
+      <p class="status-sub">${dateTr(b.removed?.date)}${b.removed?.note ? ` · ${esc(b.removed.note)}` : ''}</p>
+      <p class="status-sub">Numarası (${formatNumber(b.number)}) başka kitaba verilmez.</p>
+      <button type="button" class="btn btn-secondary" data-st="restore">Kütüphaneye geri koy</button>
+    </div>
+    <button type="button" class="link-danger" data-st="delete">${icon.trash} Kaydı kalıcı olarak sil</button>`;
+  }
+  const loan = b.loan
+    ? `<div class="status-card loan">
+        <p class="status-title">${icon.handoff} Ödünçte: ${esc(b.loan.to)}</p>
+        <p class="status-sub">${dateTr(b.loan.date)} · ${daysSince(b.loan.date) === 0 ? 'bugün verildi' : `${daysSince(b.loan.date)} gündür`}${b.loan.note ? ` · ${esc(b.loan.note)}` : ''}</p>
+        <button type="button" class="btn btn-secondary" data-st="return">Geri geldi</button>
+      </div>`
+    : `<button type="button" class="btn btn-secondary" data-st="lend">${icon.handoff} Ödünç ver</button>`;
+  const history = (b.loanHistory ?? []).length
+    ? `<details class="history"><summary>Ödünç geçmişi (${b.loanHistory.length})</summary><ul>${[...b.loanHistory].reverse().map((h) =>
+        `<li><b>${esc(h.to)}</b> · ${dateTr(h.date)} → ${h.closedBy === 'cikarildi' ? 'kütüphaneden çıkarıldı' : dateTr(h.returnedAt)}${h.note ? ` · ${esc(h.note)}` : ''}</li>`).join('')}</ul></details>`
+    : '';
+  return `<div class="stack-8">
+      <p class="section-label">Durum</p>
+      ${loan}
+      ${history}
+      <button type="button" class="btn btn-ghost" data-st="remove">Kütüphaneden çıkar (satıldı, kayboldu…)</button>
+    </div>
+    <button type="button" class="link-danger" data-st="delete">${icon.trash} Kaydı kalıcı olarak sil</button>`;
+}
+
+function mountStatus(root, number, go) {
+  const box = root.querySelector('#book-status');
+  const refresh = () => {
+    const b = getBook(state.books, number);
+    box.innerHTML = statusHtml(b);
+    const banner = root.querySelector('.number-card');
+    banner?.classList.toggle('is-removed', !isActive(b));
+  };
+  refresh();
+
+  box.addEventListener('click', async (e) => {
+    const action = e.target.closest('[data-st]')?.dataset.st;
+    if (!action) return;
+    const b = getBook(state.books, number);
+    const no = formatNumber(number);
+
+    if (action === 'lend') {
+      const fd = await confirmDialog({
+        title: 'Ödünç ver',
+        body: `<b>${esc(b.title || 'Adsız kitap')}</b> (No. ${no})`,
+        confirmLabel: 'Ödünç ver',
+        formHtml: `<label class="field-label" for="lend-to">Kime?</label>
+          <input class="field" id="lend-to" name="to" maxlength="60" autocomplete="off" placeholder="ör. Ali Yılmaz">
+          <label class="field-label" for="lend-note">Not (isteğe bağlı)</label>
+          <input class="field" id="lend-note" name="note" maxlength="120" autocomplete="off" placeholder="ör. telefon, ne zaman getirecek">`,
+        validate: (f) => (String(f.get('to') ?? '').trim() ? null : 'Kime verdiğini yaz.'),
+      });
+      if (!fd) return;
+      await lend(number, fd.get('to'), fd.get('note'));
+      toast(`${no}, ${String(fd.get('to')).trim()} kişisine ödünç verildi`);
+      refresh();
+    } else if (action === 'return') {
+      await giveBack(number);
+      toast(`${no} geri geldi`);
+      refresh();
+    } else if (action === 'remove') {
+      const fd = await confirmDialog({
+        title: 'Kütüphaneden çıkar',
+        body: `<b>${esc(b.title || 'Adsız kitap')}</b> listeden ayrılır, kaydı ve numarası (${no}) saklanır; bu numara başka kitaba verilmez. Kitap geri gelirse kaydı açıp geri koyabilirsin.`,
+        confirmLabel: 'Çıkar',
+        formHtml: `<fieldset class="reasons"><legend class="field-label">Neden?</legend>
+          ${REMOVE_REASONS.map((r, i) => `<label class="check"><input type="radio" name="reason" value="${r}" ${i === 0 ? 'checked' : ''}><span>${r}</span></label>`).join('')}
+          </fieldset>
+          <label class="field-label" for="rm-note">Not (isteğe bağlı)</label>
+          <input class="field" id="rm-note" name="note" maxlength="120" autocomplete="off" placeholder="ör. kime satıldı, nerede kayboldu">`,
+      });
+      if (!fd) return;
+      await removeBook(number, fd.get('reason'), fd.get('note'));
+      toast(`${no} kütüphaneden çıkarıldı`);
+      refresh();
+    } else if (action === 'restore') {
+      await restoreBook(number);
+      toast(`${no} kütüphaneye geri kondu`);
+      refresh();
+    } else if (action === 'delete') {
+      const fd = await confirmDialog({
+        title: 'Kalıcı olarak silinsin mi?',
+        body: `Bu, deneme ya da yanlış kayıtlar için. <b>${esc(b.title || 'Adsız kitap')}</b> tamamen silinir; ${no} numarası boş kalır, başka kitaba verilmez.<br><br>Kitap satıldıysa, kaybolduysa ya da hediye edildiyse bunun yerine <b>Kütüphaneden çıkar</b>'ı kullan.`,
+        confirmLabel: 'Kalıcı olarak sil',
+        danger: true,
+      });
+      if (!fd) return;
+      const removed = await deleteForever(number);
+      go('#/');
+      toast(`${no} silindi`, { action: { label: 'Geri al', onClick: async () => { await undoDelete(removed); go('#/'); } } });
+    }
+  });
 }

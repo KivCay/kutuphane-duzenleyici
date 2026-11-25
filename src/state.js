@@ -1,7 +1,7 @@
 // Uygulamanın tek durum kaynağı. Ekranlar veriyi buradan okur, değişiklikleri buradaki
 // eylemlerle yapar; her eylem veriyi hemen telefona kaydeder.
 import * as storage from './modules/storage.js';
-import { addBook, updateBook } from './modules/books.js';
+import { addBook, updateBook, deleteBook, undeleteBook, removeFromLibrary, restoreToLibrary, lendBook, returnBook } from './modules/books.js';
 import { cleanLines, pushRecent } from './modules/location.js';
 
 export const state = {
@@ -9,16 +9,19 @@ export const state = {
   location: null, // aktif yer (satır listesi) ya da null
   recents: [],
   settings: {},
+  lastNumber: 0, // verilmiş en büyük numara
   ready: false,
 };
 
 export async function init() {
-  const [books, location, recents, settings] = await Promise.all([
+  const [books, location, recents, settings, lastNumber] = await Promise.all([
     storage.loadBooks(),
     storage.loadActiveLocation(),
     storage.loadRecentLocations(),
     storage.loadSettings(),
+    storage.loadLastNumber(),
   ]);
+  state.lastNumber = Math.max(lastNumber, ...books.map((b) => b.number || 0), 0);
   state.settings = settings;
   state.books = books;
   state.location = location;
@@ -37,9 +40,11 @@ export async function setActiveLocation(lines) {
 }
 
 export async function saveNewBook(fields, location) {
-  const { books, book } = addBook(state.books, fields, location);
+  const { books, book } = addBook(state.books, fields, location, new Date(), state.lastNumber);
   state.books = books;
+  state.lastNumber = book.number;
   await storage.saveBooks(books);
+  await storage.saveLastNumber(state.lastNumber);
   return book;
 }
 
@@ -64,4 +69,44 @@ export async function markLabelsPrinted(numbers, kind) {
     ? { ...b, labelPrinted: { cover: false, spine: false, ...b.labelPrinted, [kind]: true } }
     : b));
   await storage.saveBooks(state.books);
+}
+
+async function commit(books) {
+  state.books = books;
+  await storage.saveBooks(books);
+}
+
+/** Kalıcı sil. Geri almak için silinen kitabı döner. Numara boş kalır. */
+export async function deleteForever(number) {
+  const { books, removed } = deleteBook(state.books, number);
+  await commit(books);
+  return removed;
+}
+
+export async function undoDelete(book) {
+  await commit(undeleteBook(state.books, book));
+}
+
+export async function removeBook(number, reason, note) {
+  await commit(removeFromLibrary(state.books, number, { reason, note }));
+}
+
+export async function restoreBook(number) {
+  await commit(restoreToLibrary(state.books, number));
+}
+
+export async function lend(number, to, note) {
+  await commit(lendBook(state.books, number, { to, note }));
+}
+
+export async function giveBack(number) {
+  await commit(returnBook(state.books, number));
+}
+
+/** "Baştan başla": bütün kitapları siler, numaralamayı 0001'e döndürür. Yer ve ayarlar kalır. */
+export async function resetLibrary() {
+  state.books = [];
+  state.lastNumber = 0;
+  await storage.saveBooks([]);
+  await storage.saveLastNumber(0);
 }

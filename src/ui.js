@@ -19,6 +19,8 @@ export const icon = {
   download: svg('<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>', 18),
   pin: svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', 18),
   plus: svg('<path d="M12 5v14M5 12h14"/>', 16),
+  trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', 18),
+  handoff: svg('<path d="M7 11l5-5 5 5M12 6v12M5 20h14"/>', 18),
   info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>', 18),
   close: svg('<path d="M6 6l12 12M18 6L6 18"/>', 18),
 };
@@ -31,11 +33,20 @@ export function header(title, backHref) {
 }
 
 let toastTimer;
-export function toast(message) {
+/** Kısa bildirim. action = { label, onClick } verilirse yanında bir düğme (ör. "Geri al") çıkar. */
+export function toast(message, { action, ms } = {}) {
   const el = document.getElementById('toast');
   if (!el) return;
-  el.textContent = message;
+  el.replaceChildren(document.createTextNode(message));
+  if (action) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toast-action';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => { el.hidden = true; action.onClick(); }, { once: true });
+    el.append(btn);
+  }
   el.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  toastTimer = setTimeout(() => { el.hidden = true; }, ms ?? (action ? 7000 : 2600));
 }

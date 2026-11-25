@@ -212,3 +212,38 @@ h1, p { margin: 0; }
 }
 @keyframes cover-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 body:has(.cover) { background: #11285C; }
+
+/* Durum: ödünç, çıkarılanlar, silme */
+.badge { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; margin-top: 3px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 8px; }
+.badge svg { width: 13px; height: 13px; }
+.badge.loan { background: #FBF0D9; color: #7A5410; }
+.badge.removed { background: #EEE8DB; color: var(--muted); }
+.book-row.is-removed { opacity: .75; }
+.book-row.is-removed .book-no { color: var(--muted); text-decoration: line-through; }
+.removed-list { margin: 4px 16px 8px; }
+.removed-list > summary { cursor: pointer; padding: 12px 4px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.removed-list .book-list { padding: 4px 0 8px; }
+.reset-area { padding: 8px 16px 24px; display: flex; justify-content: center; }
+.link-danger { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; color: var(--error); font-size: 14px; font-weight: 600; padding: 12px 4px; cursor: pointer; }
+.btn-danger { min-height: 48px; background: var(--error); color: #fff; font-weight: 600; }
+.status-card { border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.status-card .btn { margin-top: 6px; }
+.status-card.loan { background: #FBF0D9; color: #5C3F0B; }
+.status-card.removed { background: #EEE8DB; color: var(--ink); }
+.status-title { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; }
+.status-sub { font-size: 13px; line-height: 1.45; }
+.history > summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); padding: 8px 0; }
+.history ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.number-card.is-removed { background: #6B7186; }
+#book-status { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
+.dialog { border: 0; border-radius: 18px; padding: 0; width: min(92vw, 420px); box-shadow: 0 20px 60px rgba(0,0,0,.3); background: var(--surface); color: var(--ink); }
+.dialog::backdrop { background: rgba(14,23,48,.5); }
+.dialog-form { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.dialog-title { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 600; }
+.dialog-body { font-size: 15px; line-height: 1.5; color: #39405A; }
+.dialog-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.reasons { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
+.reasons legend { margin-bottom: 6px; }
+.reasons .check { min-height: 40px; }
+#toast { display: flex; align-items: center; gap: 14px; }
+.toast-action { background: none; border: 0; color: #F3D58E; font: inherit; font-weight: 700; text-decoration: underline; padding: 6px 2px; cursor: pointer; }

@@ -10,6 +10,7 @@ const KEYS = {
   location: 'aktif-yer',
   recents: 'son-yerler',
   settings: 'ayarlar',
+  lastNumber: 'son-numara',
 };
 
 export async function loadBooks() {
@@ -44,4 +45,13 @@ export async function loadSettings() {
 
 export async function saveSettings(settings) {
   await set(KEYS.settings, settings, store);
+}
+
+// Şimdiye kadar verilmiş en büyük numara (silinen numaralar tekrar verilmesin diye).
+export async function loadLastNumber() {
+  return Number(await get(KEYS.lastNumber, store)) || 0;
+}
+
+export async function saveLastNumber(n) {
+  await set(KEYS.lastNumber, n, store);
 }

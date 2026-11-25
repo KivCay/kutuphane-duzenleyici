@@ -3,7 +3,7 @@
 import { state } from '../state.js';
 import { esc } from '../ui.js';
 import { decodeBook } from '../modules/qrPayload.js';
-import { formatNumber, getBook, normalizeIsbn } from '../modules/books.js';
+import { formatNumber, getBook, normalizeIsbn, isActive } from '../modules/books.js';
 import { formatLocation } from '../modules/location.js';
 
 const brand = `<header class="qr-brand">
@@ -57,8 +57,10 @@ export function render({ params }) {
         ${row('Yayınevi', info.publisher)}${row('Yıl', info.year)}${row('Sayfa', info.pages)}${row('ISBN', info.isbn)}
       </dl>
       ${mine ? `<a class="loc-strip" href="#/kitap/${mine.number}" style="margin:0">
-          <span class="loc-strip-text"><span class="loc-strip-label">Senin kütüphanende · yeri</span>
-          <span class="loc-strip-value">${mine.location ? esc(formatLocation(mine.location)) : 'Yer belirtilmedi'}</span></span>
+          <span class="loc-strip-text"><span class="loc-strip-label">Senin kütüphanende · ${!isActive(mine) ? 'durum' : mine.loan ? 'ödünçte' : 'yeri'}</span>
+          <span class="loc-strip-value">${!isActive(mine)
+            ? `Kütüphaneden çıkarıldı · ${esc(mine.removed?.reason ?? '')}`
+            : mine.loan ? `${esc(mine.loan.to)} kişisinde` : mine.location ? esc(formatLocation(mine.location)) : 'Yer belirtilmedi'}</span></span>
           <span class="link-text">Aç</span></a>`
         : info.owner ? `<div class="qr-owner"><span class="loc-strip-label">Bu kitabın sahibi</span><b>${esc(info.owner)}</b><span>Ödünç aldıysan okuduktan sonra geri vermeyi unutma.</span></div>` : ''}
     </div>

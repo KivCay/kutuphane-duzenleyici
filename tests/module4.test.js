@@ -12,7 +12,7 @@ describe('Excel tablosu', () => {
   const col = (name) => header.indexOf(name);
 
   it('başlıklar ve yer derinliği kadar Yer sütunu', () => {
-    expect(header).toEqual(['No', 'Kitap adı', 'Alt başlık', 'Yazar', 'Çevirmen / diğer adlar', 'Yayınevi', 'Yıl', 'Sayfa', 'Tür', 'Dil', 'ISBN', 'Yer', 'Yer 1', 'Yer 2', 'Yer 3', 'Eklenme tarihi', 'Kapak etiketi basıldı', 'Sırt etiketi basıldı']);
+    expect(header).toEqual(['No', 'Kitap adı', 'Alt başlık', 'Yazar', 'Çevirmen / diğer adlar', 'Yayınevi', 'Yıl', 'Sayfa', 'Tür', 'Dil', 'ISBN', 'Yer', 'Yer 1', 'Yer 2', 'Yer 3', 'Eklenme tarihi', 'Ödünçte', 'Kimde', 'Ödünç tarihi', 'Kapak etiketi basıldı', 'Sırt etiketi basıldı']);
     expect(columns).toHaveLength(header.length);
     expect(filename).toBe('kutuphane-2026-11-25.xlsx');
   });
