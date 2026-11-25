@@ -76,6 +76,7 @@ h1, p { margin: 0; }
 .field:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(30,90,71,.15); }
 .field.invalid { border-color: var(--error); border-width: 2px; background: #FFF6F5; }
 .dark .field.invalid { background: #fff; }
+.field-hint { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 .field-error { color: var(--error); font-size: 13px; font-weight: 500; line-height: 1.4; }
 .note { display: flex; gap: 10px; align-items: flex-start; background: #EEF3F8; color: #1F3A57; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.45; }
 .note svg { flex-shrink: 0; margin-top: 1px; }

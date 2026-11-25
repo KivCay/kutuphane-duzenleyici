@@ -51,6 +51,7 @@ export function addBook(books, fields, location, now = new Date()) {
     isbn: normalizeIsbn(fields.isbn),
     title: cleanText(fields.title),
     author: cleanText(fields.author),
+    others: cleanText(fields.others),
     publisher: cleanText(fields.publisher),
     year: cleanText(fields.year),
     pages: cleanText(fields.pages),

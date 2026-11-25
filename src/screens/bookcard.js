@@ -6,7 +6,8 @@ import { formatLocation, cleanLines } from '../modules/location.js';
 import { createLocationEditor } from '../components/locationEditor.js';
 import { lookupIsbn } from '../modules/lookup.js';
 
-const LOOKUP_FIELDS = ['title', 'author', 'publisher', 'year', 'pages'];
+const LOOKUP_FIELDS = ['title', 'author', 'others', 'publisher', 'year', 'pages'];
+const OPTIONAL = new Set(['others']); // bulunamazsa turuncu yapılmaz
 
 function cleanFields(data, location) {
   const out = {};
@@ -19,6 +20,7 @@ function cleanFields(data, location) {
 const FIELDS = [
   { key: 'title', label: 'Kitap adı', wide: true },
   { key: 'author', label: 'Yazar', wide: true },
+  { key: 'others', label: 'Çevirmen / diğer adlar', wide: true, hint: 'İnternetten gelen bilgilerde çevirmen ve yazar ayrılmıyor: ilk ad yazar kabul edildi, kalanlar buraya yazıldı. Yanlışsa düzelt.' },
   { key: 'publisher', label: 'Yayınevi' },
   { key: 'year', label: 'Yıl', numeric: true, max: 4 },
   { key: 'pages', label: 'Sayfa sayısı', numeric: true, max: 5 },
@@ -31,6 +33,7 @@ function field(f, value) {
     <input class="field" id="f-${f.key}" name="${f.key}" value="${esc(value)}"
       ${f.numeric ? 'inputmode="numeric"' : ''} maxlength="${f.max ?? 200}" autocomplete="off"
       aria-describedby="err-${f.key}">
+    ${f.hint ? `<p class="field-hint" id="hint-${f.key}" hidden>${esc(f.hint)}</p>` : ''}
     <p class="field-error" id="err-${f.key}" role="alert" hidden></p>
   </div>`;
 }
@@ -157,7 +160,7 @@ async function fillFromInternet(root, isbn) {
   const inputs = Object.fromEntries(LOOKUP_FIELDS.map((k) => [k, root.querySelector(`#f-${k}`)]));
   const box = root.querySelector('#lookup');
   const text = root.querySelector('#lookup-text');
-  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value) inputs[k].classList.add('loading'); });
+  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value && !OPTIONAL.has(k)) inputs[k].classList.add('loading'); });
 
   const result = await lookupIsbn(isbn);
   if (!root.isConnected || !box.isConnected) return; // kullanıcı bu arada başka ekrana geçti
@@ -170,8 +173,11 @@ async function fillFromInternet(root, isbn) {
     for (const k of LOOKUP_FIELDS) {
       const el = inputs[k];
       const v = result.fields?.[k] ?? '';
-      if (!el.value && v) el.value = v;
-      if (!el.value) { el.classList.add('missing'); el.placeholder = 'Bulunamadı'; missing.push(k); }
+      if (!el.value && v) {
+        el.value = v;
+        if (k === 'others') root.querySelector('#hint-others').hidden = false;
+      }
+      if (!el.value && !OPTIONAL.has(k)) { el.classList.add('missing'); el.placeholder = 'Bulunamadı'; missing.push(k); }
     }
     box.classList.add('ok');
     text.textContent = missing.length
@@ -181,7 +187,7 @@ async function fillFromInternet(root, isbn) {
   }
 
   box.classList.add('miss');
-  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value) inputs[k].classList.add('missing'); });
+  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value && !OPTIONAL.has(k)) inputs[k].classList.add('missing'); });
   text.textContent = {
     bulunamadi: 'Bu kitap internette bulunamadı. Bilgileri elle yaz.',
     cevrimdisi: 'İnternet bağlantısı yok. Bilgileri elle yaz; kitap yine kaydedilir.',

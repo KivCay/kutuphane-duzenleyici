@@ -30,8 +30,16 @@ const GOOGLE = { totalItems: 1, items: [{ volumeInfo: { title: 'Tutunamayanlar',
 const OL = { 'ISBN:9789754700114': { title: 'Tutunamayanlar', authors: [{ name: 'Oguz Atay' }], publishers: [{ name: 'Iletişim' }], publish_date: '1992', number_of_pages: 736 } };
 
 describe('kaynakları birleştirme', () => {
+  it('çevirmen yazardan ayrılır: ilk ad yazar, kalanlar diğer adlar', () => {
+    const g = { items: [{ volumeInfo: { title: 'Suç ve Ceza', authors: ['Fyodor Dostoyevski', 'Mehmet Özgül'], industryIdentifiers: [{ identifier: '9786053609421' }] } }] };
+    const r = fromGoogle(g, '9786053609421');
+    expect(r.author).toBe('Fyodor Dostoyevski');
+    expect(r.others).toBe('Mehmet Özgül');
+    const ol = fromOpenLibrary({ 'ISBN:1': { title: 'T', authors: [{ name: 'A' }, { name: 'B' }, { name: 'C' }] } }, '1');
+    expect([ol.author, ol.others]).toEqual(['A', 'B, C']);
+  });
   it('Google biçimini okur', () => {
-    expect(fromGoogle(GOOGLE, '9789754700114')).toEqual({ title: 'Tutunamayanlar', author: 'Oğuz Atay', publisher: 'İletişim Yayınları', year: '2021', pages: '724' });
+    expect(fromGoogle(GOOGLE, '9789754700114')).toEqual({ title: 'Tutunamayanlar', author: 'Oğuz Atay', others: '', publisher: 'İletişim Yayınları', year: '2021', pages: '724' });
   });
   it('Google başka bir kitabı döndürürse almaz', () => {
     const other = { items: [GOOGLE.items[0], { volumeInfo: { title: 'X', industryIdentifiers: [{ identifier: '111' }] } }] };
@@ -47,10 +55,10 @@ describe('kaynakları birleştirme', () => {
   });
   it('önce Google, eksikleri Open Library tamamlar', () => {
     const m = mergeSources([
-      { name: 'Google Books', data: { title: 'A', author: 'B', publisher: '', year: '', pages: '' } },
-      { name: 'Open Library', data: { title: 'A2', author: 'B2', publisher: 'P', year: '1990', pages: '100' } },
+      { name: 'Google Books', data: { title: 'A', author: 'B', others: '', publisher: '', year: '', pages: '' } },
+      { name: 'Open Library', data: { title: 'A2', author: 'B2', others: 'Z', publisher: 'P', year: '1990', pages: '100' } },
     ]);
-    expect(m).toEqual({ found: true, fields: { title: 'A', author: 'B', publisher: 'P', year: '1990', pages: '100' }, sources: ['Google Books', 'Open Library'] });
+    expect(m).toEqual({ found: true, fields: { title: 'A', author: 'B', others: '', publisher: 'P', year: '1990', pages: '100' }, sources: ['Google Books', 'Open Library'] });
   });
   it('hiçbir kaynak bulamazsa found=false', () => {
     expect(mergeSources([{ name: 'X', data: null }]).found).toBe(false);

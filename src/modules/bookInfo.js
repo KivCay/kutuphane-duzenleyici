@@ -1,7 +1,16 @@
 // Kitap bilgisi kaynaklarından (Google Books, Open Library) gelen yanıtları tek bir biçime çevirir
 // ve birleştirir. Hem sunucu fonksiyonu (api/kitap.js) hem testler bunu kullanır.
 
-const FIELDS = ['title', 'author', 'publisher', 'year', 'pages'];
+const FIELDS = ['title', 'author', 'others', 'publisher', 'year', 'pages'];
+
+/**
+ * Kaynaklar çevirmeni, editörü ve ek yazarları aynı "authors" listesine koyuyor; hangisinin
+ * çevirmen olduğunu söylemiyor. Bu yüzden ilk ad yazar sayılır, kalanlar "others" alanına gider.
+ */
+function splitPeople(names) {
+  const list = (names ?? []).map(clean).filter(Boolean);
+  return { author: list[0] ?? '', others: list.slice(1).join(', ') };
+}
 
 function clean(v) {
   return String(v ?? '').normalize('NFC').replace(/\s+/g, ' ').trim();
@@ -27,7 +36,7 @@ export function fromGoogle(json, isbn) {
   if (!v) return null;
   return {
     title: clean(v.title),
-    author: clean((v.authors ?? []).join(', ')),
+    ...splitPeople(v.authors),
     publisher: clean(v.publisher),
     year: yearOf(v.publishedDate),
     pages: pagesOf(v.pageCount),
@@ -40,7 +49,7 @@ export function fromOpenLibrary(json, isbn) {
   if (!d) return null;
   return {
     title: clean(d.title),
-    author: clean((d.authors ?? []).map((a) => a.name).join(', ')),
+    ...splitPeople((d.authors ?? []).map((a) => a.name)),
     publisher: clean((d.publishers ?? []).map((p) => p.name).join(', ')),
     year: yearOf(d.publish_date),
     pages: pagesOf(d.number_of_pages),
@@ -54,7 +63,12 @@ export function mergeSources(sources) {
     if (!data) continue;
     let used = false;
     for (const f of FIELDS) {
-      if (!result.fields[f] && data[f]) { result.fields[f] = data[f]; used = true; }
+      if (f === 'others') continue; // yazarla aynı kaynaktan alınır (aşağıda)
+      if (!result.fields[f] && data[f]) {
+        result.fields[f] = data[f];
+        used = true;
+        if (f === 'author') result.fields.others = data.others ?? '';
+      }
     }
     if (used) result.sources.push(name);
   }
