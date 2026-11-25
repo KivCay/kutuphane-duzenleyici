@@ -23,7 +23,11 @@ function go(hash) {
   else window.location.hash = hash;
 }
 
+let cleanup = null; // önceki ekranın kapanış işi (ör. kamerayı kapatmak)
+
 function route() {
+  try { cleanup?.(); } catch (e) { console.error(e); }
+  cleanup = null;
   const raw = window.location.hash.replace(/^#/, '') || '/';
   const [path, qs = ''] = raw.split('?');
   const query = new URLSearchParams(qs);
@@ -35,7 +39,8 @@ function route() {
     (r.keys ?? []).forEach((k, i) => { params[k] = Number(m[i + 1]); });
     const ctx = { params, query, go };
     root.innerHTML = r.screen.render(ctx);
-    r.screen.mount(root, ctx);
+    const result = r.screen.mount(root, ctx);
+    if (typeof result === 'function') cleanup = result;
     window.scrollTo(0, 0);
     return;
   }

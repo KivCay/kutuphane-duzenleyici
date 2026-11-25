@@ -3,6 +3,10 @@ import { state, saveNewBook, editBook } from '../state.js';
 import { esc, header, icon, toast } from '../ui.js';
 import { formatNumber, nextNumber, getBook, findByIsbn, normalizeIsbn, isValidIsbn } from '../modules/books.js';
 import { formatLocation, cleanLines } from '../modules/location.js';
+import { createLocationEditor } from '../components/locationEditor.js';
+import { lookupIsbn } from '../modules/lookup.js';
+
+const LOOKUP_FIELDS = ['title', 'author', 'publisher', 'year', 'pages'];
 
 function cleanFields(data, location) {
   const out = {};
@@ -11,7 +15,6 @@ function cleanFields(data, location) {
   out.location = cleanLines(location);
   return out;
 }
-import { createLocationEditor } from '../components/locationEditor.js';
 
 const FIELDS = [
   { key: 'title', label: 'Kitap adı', wide: true },
@@ -58,6 +61,7 @@ export function render({ params, query }) {
         ${editing ? '' : '<span class="number-note">Kitabın etiketine<br>bu numara basılır</span>'}
       </div>
       ${dupes.length ? `<p class="note">${icon.info}<span><strong>Bilgi:</strong> Bu kitap listende zaten var (No. ${dupes.map((d) => formatNumber(d.number)).join(', ')}). İkinci kopyaysa kaydetmeye devam edebilirsin.</span></p>` : ''}
+      ${!editing && isValidIsbn(isbn) ? `<p class="lookup" id="lookup" role="status"><span class="spinner" aria-hidden="true"></span><span id="lookup-text">Kitap bilgileri internette aranıyor…</span></p>` : ''}
       <div class="field-grid">${FIELDS.map((f) => field(f, values[f.key])).join('')}</div>
       <div class="loc-card">
         <div class="loc-card-head">
@@ -78,7 +82,7 @@ export function render({ params, query }) {
   </section>`;
 }
 
-export function mount(root, { params, go }) {
+export function mount(root, { params, query, go }) {
   const form = root.querySelector('#book-form');
   if (!form) return;
   const editing = params.number != null;
@@ -86,6 +90,8 @@ export function mount(root, { params, go }) {
   let location = editing ? book.location : state.location;
   let editor = null;
   let saving = false;
+
+  if (!editing && root.querySelector('#lookup')) fillFromInternet(root, normalizeIsbn(query.get('isbn')));
 
   const locBox = root.querySelector('#loc-editor');
   const locValue = root.querySelector('#loc-value');
@@ -116,7 +122,7 @@ export function mount(root, { params, go }) {
     if (!key) return;
     const msg = root.querySelector(`#err-${key}`);
     if (msg) msg.hidden = true;
-    e.target.classList.remove('invalid');
+    e.target.classList.remove('invalid', 'missing', 'loading');
     e.target.removeAttribute('aria-invalid');
   });
 
@@ -141,7 +147,44 @@ export function mount(root, { params, go }) {
     } else {
       const saved = await saveNewBook(data, location);
       toast(`${formatNumber(saved.number)} numarasıyla kaydedildi`);
-      go('#/okut');
+      go(saved.isbn ? `#/okut?son=${saved.isbn}` : '#/okut');
     }
   });
+}
+
+// İnternetten bilgileri bulur ve yalnızca kullanıcının henüz doldurmadığı kutulara yazar.
+async function fillFromInternet(root, isbn) {
+  const inputs = Object.fromEntries(LOOKUP_FIELDS.map((k) => [k, root.querySelector(`#f-${k}`)]));
+  const box = root.querySelector('#lookup');
+  const text = root.querySelector('#lookup-text');
+  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value) inputs[k].classList.add('loading'); });
+
+  const result = await lookupIsbn(isbn);
+  if (!root.isConnected || !box.isConnected) return; // kullanıcı bu arada başka ekrana geçti
+
+  LOOKUP_FIELDS.forEach((k) => inputs[k].classList.remove('loading'));
+  box.querySelector('.spinner')?.remove();
+
+  if (result.status === 'bulundu') {
+    const missing = [];
+    for (const k of LOOKUP_FIELDS) {
+      const el = inputs[k];
+      const v = result.fields?.[k] ?? '';
+      if (!el.value && v) el.value = v;
+      if (!el.value) { el.classList.add('missing'); el.placeholder = 'Bulunamadı'; missing.push(k); }
+    }
+    box.classList.add('ok');
+    text.textContent = missing.length
+      ? `Bilgiler bulundu (${result.sources.join(', ')}). Turuncu kutular bulunamadı; istersen elle yaz.`
+      : `Bilgiler bulundu (${result.sources.join(', ')}). Kontrol edip kaydet.`;
+    return;
+  }
+
+  box.classList.add('miss');
+  LOOKUP_FIELDS.forEach((k) => { if (!inputs[k].value) inputs[k].classList.add('missing'); });
+  text.textContent = {
+    bulunamadi: 'Bu kitap internette bulunamadı. Bilgileri elle yaz.',
+    cevrimdisi: 'İnternet bağlantısı yok. Bilgileri elle yaz; kitap yine kaydedilir.',
+    'zaman-asimi': 'Arama çok uzun sürdü. Bilgileri elle yaz ya da geri dönüp tekrar okut.',
+  }[result.status] ?? 'Bilgiler şu an getirilemedi. Elle yazabilirsin.';
 }
