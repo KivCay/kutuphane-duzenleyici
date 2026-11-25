@@ -17,8 +17,8 @@ export function buildSheet(books, now = new Date()) {
   const depth = sorted.reduce((m, b) => Math.max(m, b.location?.length ?? 0), 0);
   const locCols = Array.from({ length: depth }, (_, i) => `Yer ${i + 1}`);
 
-  const headers = ['No', 'Kitap adı', 'Yazar', 'Çevirmen / diğer adlar', 'Yayınevi', 'Yıl', 'Sayfa', 'ISBN', 'Yer', ...locCols, 'Eklenme tarihi', 'Kapak etiketi basıldı', 'Sırt etiketi basıldı'];
-  const widths = [8, 36, 24, 24, 20, 7, 7, 16, 34, ...locCols.map(() => 16), 14, 12, 12];
+  const headers = ['No', 'Kitap adı', 'Alt başlık', 'Yazar', 'Çevirmen / diğer adlar', 'Yayınevi', 'Yıl', 'Sayfa', 'Tür', 'Dil', 'ISBN', 'Yer', ...locCols, 'Eklenme tarihi', 'Kapak etiketi basıldı', 'Sırt etiketi basıldı'];
+  const widths = [8, 32, 30, 24, 24, 20, 7, 7, 16, 12, 16, 34, ...locCols.map(() => 16), 14, 12, 12];
 
   const rows = [headers.map((h) => ({ value: h, ...HEADER_STYLE }))];
   for (const b of sorted) {
@@ -28,11 +28,14 @@ export function buildSheet(books, now = new Date()) {
     rows.push([
       { value: formatNumber(b.number), type: String, align: 'center' }, // "0006": etiketteki gibi
       { value: b.title || '', type: String },
+      { value: b.subtitle || '', type: String },
       { value: b.author || '', type: String },
       { value: b.others || '', type: String },
       { value: b.publisher || '', type: String },
       asNumber(b.year) !== null ? { value: asNumber(b.year), type: Number } : { value: b.year || '', type: String },
       asNumber(b.pages) !== null ? { value: asNumber(b.pages), type: Number } : { value: '', type: String },
+      { value: b.genre || '', type: String },
+      { value: b.language || '', type: String },
       { value: b.isbn || '', type: String }, // metin: Excel uzun numarayı bozmasın (9,79E+12 olmasın)
       { value: formatLocation(b.location), type: String },
       ...locCols.map((_, i) => ({ value: b.location?.[i] ?? '', type: String })),

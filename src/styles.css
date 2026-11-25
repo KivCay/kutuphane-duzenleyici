@@ -53,6 +53,7 @@ h1, p { margin: 0; }
 .book-no { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--accent); width: 54px; flex-shrink: 0; }
 .book-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .book-title { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book-subtitle { font-weight: 400; color: var(--muted); }
 .book-sub { font-size: 13px; color: var(--muted); }
 .book-loc { font-size: 12px; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .empty { margin: 24px 16px; padding: 24px; border: 1px dashed var(--line-strong); border-radius: 16px; text-align: center; color: var(--muted); line-height: 1.5; display: flex; flex-direction: column; gap: 6px; }
@@ -183,6 +184,7 @@ h1, p { margin: 0; }
 .qr-page .pad { padding: 20px 20px; }
 .qr-no { align-self: flex-start; display: inline-block; font-family: var(--serif); font-size: 22px; font-weight: 600; color: #fff; background: var(--accent); border-radius: 10px; padding: 6px 12px; }
 .qr-title { font-family: var(--serif); font-size: 30px; font-weight: 600; line-height: 1.15; }
+.qr-subtitle { font-size: 17px; color: var(--muted); line-height: 1.35; margin-top: -2px; }
 .qr-author { font-size: 18px; color: #39405A; }
 .qr-table { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px 18px; }
 .qr-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EEE8DB; font-size: 14px; }

@@ -6,8 +6,8 @@ import { formatLocation, cleanLines } from '../modules/location.js';
 import { createLocationEditor } from '../components/locationEditor.js';
 import { lookupIsbn } from '../modules/lookup.js';
 
-const LOOKUP_FIELDS = ['title', 'author', 'others', 'publisher', 'year', 'pages'];
-const OPTIONAL = new Set(['others']); // bulunamazsa turuncu yapılmaz
+const LOOKUP_FIELDS = ['title', 'subtitle', 'author', 'others', 'publisher', 'year', 'pages', 'genre', 'language'];
+const OPTIONAL = new Set(['others', 'subtitle']); // bulunamazsa turuncu yapılmaz
 
 function cleanFields(data, location) {
   const out = {};
@@ -19,12 +19,15 @@ function cleanFields(data, location) {
 
 const FIELDS = [
   { key: 'title', label: 'Kitap adı', wide: true },
+  { key: 'subtitle', label: 'Alt başlık', wide: true },
   { key: 'author', label: 'Yazar', wide: true },
   { key: 'others', label: 'Çevirmen / diğer adlar', wide: true, hint: 'İnternetten gelen bilgilerde çevirmen ve yazar ayrılmıyor: ilk ad yazar kabul edildi, kalanlar buraya yazıldı. Yanlışsa düzelt.' },
   { key: 'publisher', label: 'Yayınevi' },
   { key: 'year', label: 'Yıl', numeric: true, max: 4 },
   { key: 'pages', label: 'Sayfa sayısı', numeric: true, max: 5 },
   { key: 'isbn', label: 'ISBN', numeric: true, max: 17 },
+  { key: 'genre', label: 'Tür', max: 40 },
+  { key: 'language', label: 'Dil', max: 30 },
 ];
 
 function field(f, value) {

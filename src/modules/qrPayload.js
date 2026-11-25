@@ -27,7 +27,7 @@ function fromBase64Url(s) {
 /** Kapak QR'ına konacak kısa veri. Boş alanlar hiç yazılmaz. */
 export function encodeBook(book, owner = '') {
   const d = { v: 1, n: book.number };
-  const map = { t: book.title, a: book.author, c: book.others, p: book.publisher, y: book.year, s: book.pages, i: book.isbn, w: owner };
+  const map = { t: book.title, u: book.subtitle, a: book.author, c: book.others, p: book.publisher, y: book.year, s: book.pages, i: book.isbn, w: owner };
   for (const [k, v] of Object.entries(map)) { const c = cut(v); if (c) d[k] = c; }
   return toBase64Url(JSON.stringify(d));
 }
@@ -37,7 +37,7 @@ export function decodeBook(encoded) {
     const d = JSON.parse(fromBase64Url(String(encoded)));
     if (!d || typeof d.n !== 'number') return null;
     return {
-      number: d.n, title: d.t ?? '', author: d.a ?? '', others: d.c ?? '', publisher: d.p ?? '',
+      number: d.n, title: d.t ?? '', subtitle: d.u ?? '', author: d.a ?? '', others: d.c ?? '', publisher: d.p ?? '',
       year: d.y ?? '', pages: d.s ?? '', isbn: d.i ?? '', owner: d.w ?? '',
     };
   } catch {

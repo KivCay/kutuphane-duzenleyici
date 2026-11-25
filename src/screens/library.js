@@ -13,7 +13,7 @@ export function render() {
         <li><a class="book-row" href="#/kitap/${b.number}">
           <span class="book-no">${formatNumber(b.number)}</span>
           <span class="book-text">
-            <span class="book-title">${esc(b.title || 'Adsız kitap')}</span>
+            <span class="book-title">${esc(b.title || 'Adsız kitap')}${b.subtitle ? `<span class="book-subtitle">: ${esc(b.subtitle)}</span>` : ''}</span>
             ${b.author ? `<span class="book-sub">${esc(b.author)}</span>` : ''}
             <span class="book-loc">${b.location ? esc(formatLocation(b.location)) : 'Yer belirtilmedi'}</span>
           </span>

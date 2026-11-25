@@ -49,6 +49,7 @@ export function render({ params }) {
       <div class="stack-8">
         <span class="qr-no">No. ${formatNumber(info.number)}</span>
         <h1 class="qr-title">${esc(info.title || 'Adsız kitap')}</h1>
+        ${info.subtitle ? `<p class="qr-subtitle">${esc(info.subtitle)}</p>` : ''}
         ${info.author ? `<p class="qr-author">${esc(info.author)}</p>` : ''}
         ${info.others ? `<p class="muted small">${esc(info.others)}</p>` : ''}
       </div>

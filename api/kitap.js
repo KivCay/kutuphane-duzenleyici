@@ -43,7 +43,7 @@ export default async function handler(req, res) {
   }
   // Sıra önemli: Türkçe adlar Google'da genellikle doğru harflerle (ş, ğ, İ) gelir.
   const results = await Promise.all([google(isbn), openLibrary(isbn)]);
-  const merged = mergeSources(results);
+  const merged = mergeSources(results, isbn);
   const diagnostics = results.map(({ name, data, error, skipped }) => ({ name, found: Boolean(data), error, skipped }));
 
   // Bulunan sonuçlar bir gün önbellekte tutulur; bulunamayanlar kısa süre (sonradan eklenebilir).

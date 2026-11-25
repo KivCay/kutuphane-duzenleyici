@@ -39,12 +39,12 @@ describe('etiket yerleşimi', () => {
 });
 
 describe('QR içeriği', () => {
-  const book = { number: 6, title: 'Puslu Kıtalar Atlası', author: 'İhsan Oktay Anar', others: '', publisher: 'İletişim', year: '1995', pages: '', isbn: '9789754700114' };
+  const book = { number: 6, title: 'Puslu Kıtalar Atlası', subtitle: 'Bir roman', author: 'İhsan Oktay Anar', others: '', publisher: 'İletişim', year: '1995', pages: '', isbn: '9789754700114' };
   it('Türkçe harflerle gidip gelir, boş alan yazmaz', () => {
     const enc = encodeBook(book, 'Ayşe Yılmaz');
     expect(enc).toMatch(/^[A-Za-z0-9_-]+$/);
     const dec = decodeBook(enc);
-    expect(dec).toMatchObject({ number: 6, title: 'Puslu Kıtalar Atlası', author: 'İhsan Oktay Anar', owner: 'Ayşe Yılmaz', pages: '' });
+    expect(dec).toMatchObject({ number: 6, title: 'Puslu Kıtalar Atlası', subtitle: 'Bir roman', author: 'İhsan Oktay Anar', owner: 'Ayşe Yılmaz', pages: '' });
   });
   it('uzun ad kısaltılır, QR makul boyda kalır', () => {
     const url = coverUrl('https://kutuphane-duzenleyici.vercel.app', { ...book, title: 'x'.repeat(500) }, 'Ayşe');
