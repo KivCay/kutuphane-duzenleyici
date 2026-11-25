@@ -1,7 +1,8 @@
 // Etiketlerdeki QR kodların içeriği.
 //  - Kapak QR'ı: kitabın bilgilerini adresin # kısmında taşır (#/k/...). Bu kısım internete
 //    gönderilmez; sayfa bilgiyi doğrudan QR'dan okur. Böylece hesap ya da sunucu gerekmez.
-//  - Sırt QR'ı: yalnızca numarayı taşır (#/n/6), küçük kalsın diye.
+//  - Sırt QR'ı: yalnızca "KD:6" yazar; en küçük QR boyunda kalsın diye adres içermez.
+//    Bu yüzden yalnızca bu uygulamanın "Kitap okut" ekranı anlamlandırır.
 
 const MAX_TEXT = 90; // çok uzun adlar QR'ı gereksiz büyütmesin
 
@@ -52,9 +53,15 @@ export function spineUrl(origin, number) {
   return `${origin}/#/n/${number}`;
 }
 
+export function spineCode(number) {
+  return `KD:${number}`;
+}
+
 /** Kameranın okuduğu bir QR bizim etiketimiz mi? Öyleyse uygulama içi adresini döner. */
 export function appRouteFromQr(text, origin) {
   const s = String(text ?? '').trim();
+  const short = s.match(/^KD:(\d{1,6})$/);
+  if (short) return `#/n/${Number(short[1])}`;
   if (!s.startsWith(origin + '/')) return null;
   const m = s.match(/#\/(n\/\d+|k\/[A-Za-z0-9_-]+)$/);
   return m ? `#/${m[1]}` : null;

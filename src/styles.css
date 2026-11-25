@@ -171,8 +171,11 @@ h1, p { margin: 0; }
 .pv-qr { height: 78%; aspect-ratio: 1; flex-shrink: 0; background: conic-gradient(#1A1D1B 25%, #fff 0 50%, #1A1D1B 0 75%, #fff 0) 0 0 / 30% 30%; border: 2px solid #1A1D1B; }
 .pv-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
 .pv-text b { font-size: 12px; }
-.pv-sirt .pv-text b { font-size: 8px; }
-.pv-text small { font-size: 7px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-sirt .pv-label.filled { flex-direction: column; justify-content: center; gap: 4%; padding: 2% 0; }
+.pv-sirt .pv-qr { height: 52%; border-width: 1px; }
+.pv-sirt .pv-text { align-items: center; }
+.pv-sirt .pv-text b { font-size: 7px; }
+.pv-text small { font-size: 7px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* QR bilgi sayfası */
 .qr-page { background: var(--bg); }

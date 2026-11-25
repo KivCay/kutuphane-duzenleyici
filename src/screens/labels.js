@@ -1,7 +1,7 @@
 // 5 · Etiketler: kapak (24'lü) ve sırt (65'li) QR etiketleri için PDF.
 import { state, updateSettings, markLabelsPrinted } from '../state.js';
 import { header, esc, icon, toast } from '../ui.js';
-import { SHEETS, perPage, pageCount, layoutLabels, authorShort } from '../modules/labelLayout.js';
+import { SHEETS, perPage, pageCount, layoutLabels } from '../modules/labelLayout.js';
 import { formatNumber } from '../modules/books.js';
 
 const KIND_KEY = { kapak: 'cover', sirt: 'spine' };
@@ -30,7 +30,7 @@ function previewHtml() {
     const b = byIndex.get(i);
     const used = i < ui.startAt - 1;
     cells.push(b
-      ? `<div class="pv-label filled"><span class="pv-qr" aria-hidden="true"></span><span class="pv-text"><b>${formatNumber(b.number)}</b>${ui.kind === 'kapak' && b.author ? `<small>${esc(authorShort(b.author))}</small>` : ''}</span></div>`
+      ? `<div class="pv-label filled"><span class="pv-qr" aria-hidden="true"></span><span class="pv-text"><b>${formatNumber(b.number)}</b>${ui.kind === 'kapak' && b.author ? `<small>${esc(b.author)}</small>` : ''}</span></div>`
       : `<div class="pv-label ${used ? 'used' : ''}"></div>`);
   }
   return `<div class="pv-sheet pv-${ui.kind}" role="img" aria-label="İlk sayfanın önizlemesi">${cells.join('')}</div>`;
@@ -63,8 +63,8 @@ function bodyHtml() {
       <button type="button" data-kind="sirt" aria-pressed="${ui.kind === 'sirt'}">Sırt etiketi</button>
     </div>
     <p class="muted small">${ui.kind === 'kapak'
-      ? `${sheet.name} kâğıt (70 × 37 mm). QR kod, numara ve yazar. QR okutulunca kitabın bilgi sayfası açılır.`
-      : `${sheet.name} kâğıt (38 × 21 mm). Küçük QR ve numara. QR'ı bu uygulamayla okutunca kitap listende açılır.`}</p>
+      ? `${sheet.name} kâğıt (70 × 37 mm). QR kod, numara ve yazarın adı. QR okutulunca kitabın bilgi sayfası açılır.`
+      : `${sheet.name} kâğıt (38 × 21 mm). 1 cm'lik QR ve altında numara. Bu QR'ı yalnızca uygulamadaki "Kitap okut" ekranı okur; kitap listende açılır.`}</p>
 
     <div class="segmented soft" role="group" aria-label="Hangi kitaplar">
       <button type="button" data-scope="yeni" aria-pressed="${ui.scope === 'yeni'}">Basılmamışlar (${c.yeni})</button>

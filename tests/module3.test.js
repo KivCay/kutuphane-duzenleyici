@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SHEETS, perPage, slotPosition, layoutLabels, pageCount, authorShort, PAGE } from '../src/modules/labelLayout.js';
-import { encodeBook, decodeBook, coverUrl, spineUrl, appRouteFromQr } from '../src/modules/qrPayload.js';
+import { encodeBook, decodeBook, coverUrl, spineUrl, spineCode, appRouteFromQr } from '../src/modules/qrPayload.js';
 
 describe('etiket yerleşimi', () => {
   it('24\'lü kapak kâğıdı A4 içine sığar', () => {
@@ -61,5 +61,7 @@ describe('QR içeriği', () => {
     expect(appRouteFromQr(coverUrl(o, book, ''), o)).toMatch(/^#\/k\//);
     expect(appRouteFromQr('https://evil.example/#/n/12', o)).toBeNull();
     expect(appRouteFromQr('WIFI:S:ev;', o)).toBeNull();
+    expect(appRouteFromQr(spineCode(42), o)).toBe('#/n/42');
+    expect(appRouteFromQr('KD:abc', o)).toBeNull();
   });
 });
