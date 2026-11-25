@@ -1,4 +1,4 @@
-// Telefondan kendi sunucu fonksiyonumuza (/api/kitap) sorar. İnternet yoksa ya da yanıt
+// Telefondan kendi sunucu fonksiyonumuza (/api/kitap) sorar. v=2: Google anahtarı eklenmeden önceki önbelleği atlar. İnternet yoksa ya da yanıt
 // gecikirse anlaşılır bir durum kodu döner; ekran buna göre "elle yaz" der.
 
 const TIMEOUT_MS = 10000;
@@ -6,7 +6,7 @@ const TIMEOUT_MS = 10000;
 export async function lookupIsbn(isbn, { fetchImpl = fetch } = {}) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return { status: 'cevrimdisi' };
   try {
-    const res = await fetchImpl(`/api/kitap?isbn=${encodeURIComponent(isbn)}`, {
+    const res = await fetchImpl(`/api/kitap?isbn=${encodeURIComponent(isbn)}&v=2`, {
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) return { status: 'hata' };
