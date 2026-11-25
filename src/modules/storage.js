@@ -9,6 +9,7 @@ const KEYS = {
   books: 'kitaplar',
   location: 'aktif-yer',
   recents: 'son-yerler',
+  settings: 'ayarlar',
 };
 
 export async function loadBooks() {
@@ -34,4 +35,13 @@ export async function loadRecentLocations() {
 
 export async function saveRecentLocations(list) {
   await set(KEYS.recents, list, store);
+}
+
+// Küçük ayarlar (ör. etikette görünecek kütüphane adı).
+export async function loadSettings() {
+  return (await get(KEYS.settings, store)) ?? {};
+}
+
+export async function saveSettings(settings) {
+  await set(KEYS.settings, settings, store);
 }

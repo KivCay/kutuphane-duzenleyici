@@ -31,7 +31,7 @@ export function render() {
         <span class="vf-line" aria-hidden="true"></span>
         <p class="vf-status" id="cam-status">Kamera açılıyor…</p>
       </div>
-      <p class="scan-hint">Kitabın arka kapağındaki barkodu çerçevenin içine getir. Okununca bilgiler otomatik bulunur.</p>
+      <p class="scan-hint">Kitabın arka kapağındaki barkodu çerçevenin içine getir. Okununca bilgiler otomatik bulunur. Etiketli bir kitabın QR'ını okutursan kitap listende açılır.</p>
       <div class="cam-error" id="cam-error" role="alert" hidden>
         <p id="cam-error-text"></p>
         <button type="button" class="btn btn-secondary" data-action="retry">Tekrar dene</button>
@@ -80,6 +80,11 @@ export function mount(root, { go, query }) {
     try {
       const s = await startScanner(video, {
         ignoreIsbn: justSaved,
+        onAppQr: (route) => {
+          scanner = null;
+          navigator.vibrate?.(60);
+          go(route);
+        },
         onIsbn: (isbn) => {
           scanner = null;
           navigator.vibrate?.(60);

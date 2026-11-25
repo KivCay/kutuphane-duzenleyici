@@ -144,3 +144,48 @@ h1, p { margin: 0; }
 
 /* Bildirim */
 #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 150px); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 15px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); z-index: 10; max-width: calc(100% - 32px); }
+
+/* Etiketler */
+.small { font-size: 13px; line-height: 1.45; }
+.segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.segmented button { min-height: 44px; border-radius: 10px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); font-size: 15px; font-weight: 600; cursor: pointer; }
+.segmented button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.segmented.soft { background: #E9E5DC; padding: 4px; border-radius: 12px; gap: 4px; }
+.segmented.soft button { border: 0; background: transparent; color: var(--ink); min-height: 40px; }
+.segmented.soft button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.35; cursor: pointer; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; }
+.check small { color: var(--muted); }
+.summary { font-size: 14px; color: var(--muted); }
+.summary b { color: var(--ink); }
+.tip { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.tip svg { flex-shrink: 0; margin-top: 1px; }
+.after-print { background: var(--accent-soft); color: var(--accent-ink); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.45; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.pv-sheet { align-self: center; width: min(100%, 340px); aspect-ratio: 210 / 297; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.08); display: grid; }
+.pv-kapak { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(8, 1fr); padding: 0.17% 0; }
+.pv-sirt { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(13, 1fr); padding: 3.6% 2.3%; column-gap: 1.2%; }
+.pv-label { border: 1px dashed #E6E2DA; border-radius: 3px; display: flex; align-items: center; gap: 6%; padding: 0 5%; overflow: hidden; min-width: 0; }
+.pv-label.used { background: repeating-linear-gradient(45deg, #F1EEE8, #F1EEE8 3px, #fff 3px, #fff 6px); }
+.pv-label.filled { border-color: #CFCAC0; }
+.pv-qr { height: 78%; aspect-ratio: 1; flex-shrink: 0; background: conic-gradient(#1A1D1B 25%, #fff 0 50%, #1A1D1B 0 75%, #fff 0) 0 0 / 30% 30%; border: 2px solid #1A1D1B; }
+.pv-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.pv-text b { font-size: 12px; }
+.pv-sirt .pv-text b { font-size: 8px; }
+.pv-text small { font-size: 7px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* QR bilgi sayfası */
+.qr-page { background: var(--bg); }
+.qr-brand { display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top) + 18px) 20px 14px; border-bottom: 1px solid var(--line); color: var(--accent); font-size: 14px; font-weight: 600; }
+.qr-page .pad { padding: 20px 20px; }
+.qr-no { align-self: flex-start; display: inline-block; font-family: var(--serif); font-size: 22px; font-weight: 600; color: #fff; background: var(--accent); border-radius: 10px; padding: 6px 12px; }
+.qr-title { font-family: var(--serif); font-size: 30px; font-weight: 600; line-height: 1.15; }
+.qr-author { font-size: 18px; color: #3D4340; }
+.qr-table { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px 18px; }
+.qr-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EFECE6; font-size: 14px; }
+.qr-row:last-child { border-bottom: 0; }
+.qr-row dt { color: var(--muted); }
+.qr-row dd { margin: 0; font-weight: 500; text-align: right; }
+.qr-owner { background: #EAF2EE; color: var(--accent-ink); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
+.qr-owner b { font-size: 16px; }
+.qr-foot { margin-top: auto; padding: 16px 20px calc(env(safe-area-inset-bottom) + 24px); text-align: center; }

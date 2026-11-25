@@ -6,6 +6,7 @@ import * as locationScreen from './screens/location.js';
 import * as scannerScreen from './screens/scanner.js';
 import * as bookScreen from './screens/bookcard.js';
 import * as labelsScreen from './screens/labels.js';
+import * as qrScreen from './screens/qrpage.js';
 
 const routes = [
   { pattern: /^\/$/, screen: libraryScreen },
@@ -14,6 +15,8 @@ const routes = [
   { pattern: /^\/yeni$/, screen: bookScreen },
   { pattern: /^\/kitap\/(\d+)$/, screen: bookScreen, keys: ['number'] },
   { pattern: /^\/etiketler$/, screen: labelsScreen },
+  { pattern: /^\/k\/([A-Za-z0-9_-]+)$/, screen: qrScreen, keys: ['data'], fixed: { kind: 'k' } },
+  { pattern: /^\/n\/(\d+)$/, screen: qrScreen, keys: ['number'], fixed: { kind: 'n' } },
 ];
 
 const root = document.getElementById('app');
@@ -35,8 +38,8 @@ function route() {
   for (const r of routes) {
     const m = path.match(r.pattern);
     if (!m) continue;
-    const params = {};
-    (r.keys ?? []).forEach((k, i) => { params[k] = Number(m[i + 1]); });
+    const params = { ...(r.fixed ?? {}) };
+    (r.keys ?? []).forEach((k, i) => { params[k] = k === 'number' ? Number(m[i + 1]) : m[i + 1]; });
     const ctx = { params, query, go };
     root.innerHTML = r.screen.render(ctx);
     const result = r.screen.mount(root, ctx);

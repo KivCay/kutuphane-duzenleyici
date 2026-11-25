@@ -1,8 +1,9 @@
 // Telefon kamerasını açar ve görüntüde kitap barkodu arar.
 // Tarayıcının kendi barkod okuyucusu varsa onu, yoksa (ör. iPhone) uygulamayla gelen okuyucuyu kullanır.
 import { pickIsbn, createConfirmer } from './isbnScan.js';
+import { appRouteFromQr } from './qrPayload.js';
 
-const FORMATS = ['ean_13'];
+const FORMATS = ['ean_13', 'qr_code']; // kitap barkodu + kendi etiketlerimiz
 const SCAN_EVERY_MS = 120;
 
 let detectorPromise = null;
@@ -13,7 +14,9 @@ async function getDetector() {
       if ('BarcodeDetector' in window) {
         try {
           const supported = await window.BarcodeDetector.getSupportedFormats();
-          if (supported.includes('ean_13')) return new window.BarcodeDetector({ formats: FORMATS });
+          if (supported.includes('ean_13')) {
+            return new window.BarcodeDetector({ formats: FORMATS.filter((f) => supported.includes(f)) });
+          }
         } catch { /* yedeğe geç */ }
       }
       // Yedek okuyucu: okuyucu dosyasını (WASM) kendi sitemizden yükler, dış bir CDN'e bağımlı değil.
@@ -53,7 +56,7 @@ export function cameraErrorCode(err) {
  * Kamerayı <video> içinde başlatır; teyit edilmiş bir ISBN bulununca onIsbn(isbn) çağrılır.
  * Dönen nesnenin stop() metodu kamerayı kapatır (ekrandan çıkınca mutlaka çağrılmalı).
  */
-export async function startScanner(video, { onIsbn, ignoreIsbn = null, ignoreMs = 3000 }) {
+export async function startScanner(video, { onIsbn, onAppQr, ignoreIsbn = null, ignoreMs = 3000 }) {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
     const e = new Error('camera unavailable'); e.name = 'Unsupported'; throw e;
   }
@@ -80,7 +83,14 @@ export async function startScanner(video, { onIsbn, ignoreIsbn = null, ignoreMs 
     try {
       if (video.readyState >= 2) {
         const codes = await detector.detect(video);
-        let found = pickIsbn(codes.map((c) => c.rawValue));
+        const raws = codes.map((c) => c.rawValue);
+        const route = onAppQr && raws.map((r) => appRouteFromQr(r, window.location.origin)).find(Boolean);
+        if (route && !stopped) { // kendi etiketimiz: QR'ın hata düzeltmesi var, teyide gerek yok
+          stop();
+          onAppQr(route);
+          return;
+        }
+        let found = pickIsbn(raws);
         if (found && found === ignoreIsbn && Date.now() < ignoreUntil) found = null;
         const isbn = confirm(found);
         if (isbn && !stopped) {
