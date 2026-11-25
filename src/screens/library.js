@@ -52,7 +52,27 @@ export function render() {
 }
 
 export function mount(root) {
-  root.querySelector('[data-action="excel"]').addEventListener('click', () => {
-    toast("Excel'e aktarma bir sonraki modüllerde geliyor.");
+  const btn = root.querySelector('[data-action="excel"]');
+  btn.addEventListener('click', async () => {
+    if (!state.books.length) { toast('Henüz kitap yok. Önce birkaç kitap okut.'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const label = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Hazırlanıyor…';
+    try {
+      const [{ buildExcel }, { deliverFile }] = await Promise.all([
+        import('../modules/excelExport.js'),
+        import('../modules/deliverFile.js'),
+      ]);
+      const { blob, filename } = await buildExcel(state.books);
+      const result = await deliverFile(blob, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      if (result !== 'iptal') toast(`${state.books.length} kitap Excel'e aktarıldı`);
+    } catch (e) {
+      console.error(e);
+      toast('Excel dosyası oluşturulamadı. İnternet bağlantını kontrol edip tekrar dene.');
+    } finally {
+      btn.innerHTML = label;
+      btn.disabled = false;
+    }
   });
 }
