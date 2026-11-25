@@ -73,6 +73,11 @@ h1, p { margin: 0; }
 /* Formlar */
 .field { width: 100%; height: 48px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 0 12px; background: var(--surface); font-size: 16px; color: var(--ink); }
 .field:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(30,90,71,.15); }
+.field.invalid { border-color: var(--error); border-width: 2px; background: #FFF6F5; }
+.dark .field.invalid { background: #fff; }
+.field-error { color: var(--error); font-size: 13px; font-weight: 500; line-height: 1.4; }
+.note { display: flex; gap: 10px; align-items: flex-start; background: #EEF3F8; color: #1F3A57; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.45; }
+.note svg { flex-shrink: 0; margin-top: 1px; }
 .field-label, .section-label { font-size: 13px; font-weight: 600; color: var(--muted); }
 .section-label.on-dark { color: #B9C1BC; }
 .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }

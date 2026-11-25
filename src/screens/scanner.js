@@ -18,8 +18,8 @@ export function render() {
       </div>
       <form class="stack-8" id="isbn-form" novalidate>
         <label class="section-label on-dark" for="isbn">ISBN'i elle yaz</label>
-        <input class="field" id="isbn" inputmode="numeric" autocomplete="off" placeholder="978…" maxlength="20" enterkeyhint="go">
-        <p class="error" id="isbn-error" hidden></p>
+        <input class="field" id="isbn" aria-describedby="isbn-error" inputmode="numeric" autocomplete="off" placeholder="978…" maxlength="20" enterkeyhint="go">
+        <p class="error" id="isbn-error" role="alert" hidden></p>
         <button class="btn btn-primary" type="submit">Devam</button>
         <button class="btn btn-ghost on-dark" type="button" data-action="no-isbn">ISBN'i olmayan kitap ekle</button>
       </form>
@@ -39,17 +39,29 @@ export function mount(root, { go }) {
   const input = root.querySelector('#isbn');
   const err = root.querySelector('#isbn-error');
 
+  // Yazmaya başlayınca eski hata mesajı kaybolur.
+  input.addEventListener('input', () => {
+    err.hidden = true;
+    input.classList.remove('invalid');
+    input.removeAttribute('aria-invalid');
+  });
+  const fail = (message) => {
+    err.textContent = message;
+    err.hidden = false;
+    input.classList.add('invalid');
+    input.setAttribute('aria-invalid', 'true');
+    input.focus();
+  };
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const raw = input.value;
     if (!normalizeIsbn(raw)) {
-      err.textContent = 'Önce ISBN numarasını yaz.';
-      err.hidden = false;
+      fail('Önce ISBN numarasını yaz.');
       return;
     }
     if (!isValidIsbn(raw)) {
-      err.textContent = 'Bu ISBN geçerli görünmüyor. Rakamları kontrol et (10 ya da 13 hane).';
-      err.hidden = false;
+      fail('Bu ISBN geçerli görünmüyor. Rakamları kontrol et (10 ya da 13 hane).');
       return;
     }
     go(`#/yeni?isbn=${normalizeIsbn(raw)}`);

@@ -1,7 +1,7 @@
 // 4 · Kitap kartı: yeni kitabı kaydetme (#/yeni) ve kayıtlı kitabı düzenleme (#/kitap/N).
 import { state, saveNewBook, editBook } from '../state.js';
 import { esc, header, icon, toast } from '../ui.js';
-import { formatNumber, nextNumber, getBook, findByIsbn, normalizeIsbn } from '../modules/books.js';
+import { formatNumber, nextNumber, getBook, findByIsbn, normalizeIsbn, isValidIsbn } from '../modules/books.js';
 import { formatLocation, cleanLines } from '../modules/location.js';
 
 function cleanFields(data, location) {
@@ -26,7 +26,9 @@ function field(f, value) {
   return `<div class="field-wrap ${f.wide ? 'wide' : ''}">
     <label class="field-label" for="f-${f.key}">${f.label}</label>
     <input class="field" id="f-${f.key}" name="${f.key}" value="${esc(value)}"
-      ${f.numeric ? 'inputmode="numeric"' : ''} maxlength="${f.max ?? 200}" autocomplete="off">
+      ${f.numeric ? 'inputmode="numeric"' : ''} maxlength="${f.max ?? 200}" autocomplete="off"
+      aria-describedby="err-${f.key}">
+    <p class="field-error" id="err-${f.key}" role="alert" hidden></p>
   </div>`;
 }
 
@@ -55,9 +57,8 @@ export function render({ params, query }) {
         </div>
         ${editing ? '' : '<span class="number-note">Kitabın etiketine<br>bu numara basılır</span>'}
       </div>
-      ${dupes.length ? `<p class="warn">Bu ISBN'li bir kitap zaten var (No. ${dupes.map((d) => formatNumber(d.number)).join(', ')}). İkinci kopyaysa yine de kaydedebilirsin.</p>` : ''}
+      ${dupes.length ? `<p class="note">${icon.info}<span><strong>Bilgi:</strong> Bu kitap listende zaten var (No. ${dupes.map((d) => formatNumber(d.number)).join(', ')}). İkinci kopyaysa kaydetmeye devam edebilirsin.</span></p>` : ''}
       <div class="field-grid">${FIELDS.map((f) => field(f, values[f.key])).join('')}</div>
-      <p class="error" id="form-error" hidden></p>
       <div class="loc-card">
         <div class="loc-card-head">
           ${icon.pin}
@@ -98,17 +99,37 @@ export function mount(root, { params, go }) {
     e.currentTarget.textContent = locBox.hidden ? 'Değiştir' : 'Tamam';
   });
 
-  form.addEventListener('input', () => { root.querySelector('#form-error').hidden = true; });
+  // Hata mesajı, sorunlu kutunun hemen altında görünür; o kutuya yazmaya başlayınca kaybolur.
+  function showFieldError(key, message) {
+    const input = root.querySelector(`#f-${key}`);
+    const msg = root.querySelector(`#err-${key}`);
+    msg.textContent = message;
+    msg.hidden = false;
+    input.classList.add('invalid');
+    input.setAttribute('aria-invalid', 'true');
+    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    input.focus({ preventScroll: true });
+  }
+
+  form.addEventListener('input', (e) => {
+    const key = e.target.name;
+    if (!key) return;
+    const msg = root.querySelector(`#err-${key}`);
+    if (msg) msg.hidden = true;
+    e.target.classList.remove('invalid');
+    e.target.removeAttribute('aria-invalid');
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (saving) return; // çift dokunuşta iki kez kaydetme
     const data = Object.fromEntries(new FormData(form).entries());
-    const err = root.querySelector('#form-error');
     if (!data.title?.trim()) {
-      err.textContent = 'Kitap adını yazmadan kaydedemezsin.';
-      err.hidden = false;
-      root.querySelector('#f-title').focus();
+      showFieldError('title', 'Kitap adını yazmadan kaydedemezsin.');
+      return;
+    }
+    if (data.isbn?.trim() && !isValidIsbn(data.isbn)) {
+      showFieldError('isbn', 'Bu ISBN geçerli görünmüyor. Rakamları kontrol et ya da kutuyu boşalt.');
       return;
     }
     saving = true;
