@@ -1,0 +1,24 @@
+{
+  "name": "kutuphane-duzenleyici",
+  "version": "1.0.0",
+  "description": "Kitap barkodunu okut, kütüphaneni numarala, QR etiketle.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "idb-keyval": "^6.3.0"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.8",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  },
+  "private": true,
+  "type": "module"
+}

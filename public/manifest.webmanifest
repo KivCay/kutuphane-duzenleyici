@@ -1,0 +1,13 @@
+{
+  "name": "Kütüphane Düzenleyici",
+  "short_name": "Kütüphane",
+  "description": "Kitap barkodunu okut, kütüphaneni numarala, QR etiketle.",
+  "lang": "tr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F3EE",
+  "theme_color": "#1E5A47",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
