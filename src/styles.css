@@ -192,3 +192,20 @@ h1, p { margin: 0; }
 .qr-owner { background: #EAF2EE; color: var(--accent-ink); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
 .qr-owner b { font-size: 16px; }
 .qr-foot { margin-top: auto; padding: 16px 20px calc(env(safe-area-inset-bottom) + 24px); text-align: center; }
+
+/* Kapak sayfası — logonun laciverti */
+.cover { background: radial-gradient(120% 70% at 50% 30%, #1A3778 0%, #11285C 55%, #0B1C44 100%); color: #F7F1E3; justify-content: space-between; }
+.cover-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: calc(env(safe-area-inset-top) + 40px) 24px 24px; text-align: center; }
+.cover-logo { width: 168px; height: 168px; filter: drop-shadow(0 18px 30px rgba(0,0,0,.35)); margin-bottom: 18px; }
+.cover-title { font-family: var(--serif); font-size: 34px; font-weight: 600; line-height: 1.1; color: #FBF6EA; }
+.cover-subtitle { font-size: 13px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #C9B98F; }
+.cover-foot { padding: 16px 24px calc(env(safe-area-inset-bottom) + 28px); display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.cover-start { min-height: 56px; border-radius: 14px; background: #F3EBD8; color: #11285C; font-size: 18px; font-weight: 700; letter-spacing: .02em; }
+.cover-start:active { background: #E6DBC2; }
+.cover-start:focus-visible { outline-color: #C9B98F; }
+.cover-version { text-align: center; font-size: 13px; color: #A9B3CC; }
+@media (prefers-reduced-motion: no-preference) {
+  .cover-logo { animation: cover-in .5s ease-out both; }
+  .cover-title, .cover-subtitle { animation: cover-in .5s .08s ease-out both; }
+}
+@keyframes cover-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

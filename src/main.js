@@ -7,8 +7,10 @@ import * as scannerScreen from './screens/scanner.js';
 import * as bookScreen from './screens/bookcard.js';
 import * as labelsScreen from './screens/labels.js';
 import * as qrScreen from './screens/qrpage.js';
+import * as coverScreen from './screens/cover.js';
 
 const routes = [
+  { pattern: /^\/kapak$/, screen: coverScreen },
   { pattern: /^\/$/, screen: libraryScreen },
   { pattern: /^\/yer$/, screen: locationScreen },
   { pattern: /^\/okut$/, screen: scannerScreen },
@@ -57,6 +59,12 @@ async function start() {
     console.error(e);
     root.innerHTML = '<div class="pad"><p class="error">Veriler yüklenemedi. Tarayıcının gizli (incognito) modundaysan normal pencerede aç.</p></div>';
     return;
+  }
+  // Uygulama açılışında (adres boşken ya da ana sayfadayken) önce kapak sayfası.
+  // QR etiketinden gelen adresler (#/k/…, #/n/…) kapağı atlar.
+  const h = window.location.hash;
+  if ((h === '' || h === '#' || h === '#/') && !coverScreen.coverSeen()) {
+    window.location.replace('#/kapak');
   }
   window.addEventListener('hashchange', route);
   route();
