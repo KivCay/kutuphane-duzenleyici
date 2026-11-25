@@ -33,7 +33,7 @@ h1, p { margin: 0; }
 .dark .round-btn { background: rgba(255,255,255,0.12); }
 .lib-head { padding: calc(env(safe-area-inset-top) + 28px) 24px 14px; }
 .eyebrow { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-.lib-title-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.lib-title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; }
 .display { font-family: var(--serif); font-size: 36px; font-weight: 600; line-height: 1.1; }
 
 /* Yer şeridi */
@@ -247,3 +247,11 @@ body:has(.cover) { background: #11285C; }
 .reasons .check { min-height: 40px; }
 #toast { display: flex; align-items: center; gap: 14px; }
 .toast-action { background: none; border: 0; color: #F3D58E; font: inherit; font-weight: 700; text-decoration: underline; padding: 6px 2px; cursor: pointer; }
+
+/* Özet */
+.stats-link { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { display: flex; flex-direction: column; gap: 2px; min-height: 92px; justify-content: center; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; color: var(--ink); }
+a.tile:active { background: #FBFAF7; }
+.tile-value { font-family: var(--serif); font-size: 34px; font-weight: 600; line-height: 1; color: var(--accent); }
+.tile-label { font-size: 13px; color: var(--muted); line-height: 1.3; }

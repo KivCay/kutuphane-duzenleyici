@@ -93,3 +93,19 @@ describe('Excel: ödünç sütunları ve çıkarılanlar sayfası', () => {
     expect(removedRows[1][4].value).toBe('Satıldı');
   });
 });
+
+import { basicStats } from '../src/modules/stats.js';
+describe('özet sayıları', () => {
+  it('temel sayılar', () => {
+    let { books } = lib(4);
+    books = lendBook(books, 1, { to: 'Ali' });
+    books = returnBook(books, 1);
+    books = lendBook(books, 1, { to: 'Veli' });
+    books = removeFromLibrary(books, 2, { reason: 'Satıldı' });
+    books = books.map((b) => (b.number === 3 ? { ...b, labelPrinted: { cover: true, spine: false } } : b));
+    const s = basicStats(books, new Date('2026-11-20T10:00:00Z'));
+    expect(s).toEqual({ inLibrary: 3, totalAdded: 4, addedThisMonth: 4, removed: 1, onLoan: 1, loansTotal: 2, coverPending: 2, spinePending: 3 });
+    expect(basicStats(books, new Date('2026-12-05T10:00:00Z')).addedThisMonth).toBe(0);
+    expect(basicStats([])).toMatchObject({ inLibrary: 0, loansTotal: 0 });
+  });
+});

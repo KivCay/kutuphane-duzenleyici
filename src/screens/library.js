@@ -47,7 +47,7 @@ export function render() {
       <p class="eyebrow">Ev kütüphanesi</p>
       <div class="lib-title-row">
         <h1 class="display">Kütüphanem</h1>
-        <p class="muted">${active.length} kitap${onLoan ? ` · ${onLoan} ödünçte` : ''}</p>
+        <a class="stats-link" href="#/ozet" aria-label="Özet: kütüphane sayıları">${icon.chart}<span>${active.length} kitap${onLoan ? ` · ${onLoan} ödünçte` : ''} · Özet</span></a>
       </div>
     </div>
     <a class="loc-strip" href="#/yer">

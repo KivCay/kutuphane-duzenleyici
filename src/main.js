@@ -8,9 +8,11 @@ import * as bookScreen from './screens/bookcard.js';
 import * as labelsScreen from './screens/labels.js';
 import * as qrScreen from './screens/qrpage.js';
 import * as coverScreen from './screens/cover.js';
+import * as statsScreen from './screens/stats.js';
 
 const routes = [
   { pattern: /^\/kapak$/, screen: coverScreen },
+  { pattern: /^\/ozet$/, screen: statsScreen },
   { pattern: /^\/$/, screen: libraryScreen },
   { pattern: /^\/yer$/, screen: locationScreen },
   { pattern: /^\/okut$/, screen: scannerScreen },
